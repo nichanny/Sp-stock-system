@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Picking List - Smart Stock Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6B3A1F;
+  --primary-dark: #4E2910;
+  --primary-light: #F2E8DA;
+  --success: #1D5C35;
+  --warning: #B8860B;
+  --danger: #B83220;
+  --border: rgba(107,58,31,0.15);
+  --text: #1A120A;
+  --text-muted: #5A3E28;
+}
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: linear-gradient(135deg, var(--primary-light) 0%, #FBF7F1 100%);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  background: var(--primary-dark);
+  color: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header h1 { font-size: 28px; margin-bottom: 4px; }
+.header p { opacity: 0.9; font-size: 14px; }
+
+.upload-section {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 2px dashed var(--primary);
+}
+
+.upload-input { display: none; }
+
+.upload-button {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.3s;
+}
+
+.upload-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+}
+
+.stat-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.picking-section {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--primary-dark);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+thead th {
+  background: var(--primary);
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+tbody td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr:hover {
+  background: var(--primary-light);
+}
+
+.sku-name {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.sku-detail {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.cut-from {
+  background: var(--warning);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.cut-conditional {
+  background: var(--warning);
+  opacity: 0.7;
+}
+
+.qty-badge {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.qty-badge.high {
+  background: var(--danger);
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.row-picked {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.row-cut {
+  background: #FFF8DC;
+}
+
+.print-button {
+  background: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.print-button:hover {
+  background: var(--primary-dark);
+}
+
+.print-button.danger {
+  background: var(--danger);
+}
+
+.production-note {
+  background: #FFF8DC;
+  border: 1px solid var(--warning);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.production-note strong {
+  color: var(--warning);
+}
+
+.order-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.order-id {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--primary-dark);
+  margin-bottom: 8px;
+}
+
+.order-items {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+@media print {
+  .upload-section, .print-button, .header { display: none; }
+  body { background: white; padding: 0; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>📋 Picking List - Smart Stock & Production Rules</h1>
+    <p>Auto-detect RAW materials vs FINISHED goods | Smart stock deduction</p>
+  </div>
+
+  <div class="upload-section">
+    <label for="pdf-upload" class="upload-button">📂 Upload Shopee PDF</label>
+    <input type="file" id="pdf-upload" class="upload-input" accept=".pdf" />
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Orders</div>
+      <div class="stat-value" id="stat-orders">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Raw Materials</div>
+      <div class="stat-value" id="stat-raw">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Finished Goods</div>
+      <div class="stat-value" id="stat-finished">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Need to Cut</div>
+      <div class="stat-value" id="stat-cut">0</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 24px; display: flex; gap: 8px;">
+    <button class="print-button" onclick="window.print()">🖨️ Print</button>
+    <button class="print-button danger" onclick="clearData()">🗑️ Clear</button>
+  </div>
+
+  <div id="production-notes" class="picking-section"></div>
+
+  <div class="picking-section">
+    <div class="section-title">📦 Picking List (ชื่อสต๊อค Dc Factory Stock)</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th width="5%">#</th>
+            <th width="40%">SKU Name</th>
+            <th width="15%">Type</th>
+            <th width="10%">Qty</th>
+            <th width="10%">Picked</th>
+            <th width="20%">Orders</th>
+          </tr>
+        </thead>
+        <tbody id="sku-table">
+          <tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">Upload PDF to see picking list</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="picking-section">
+    <div class="section-title">📮 Orders Detail</div>
+    <div id="orders-container">
+      <div style="text-align: center; padding: 32px; color: var(--text-muted);">Upload PDF to see orders</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+// ═══════════════════════════════════════════════════════
+// PRODUCTION RULES DATABASE
+// ═══════════════════════════════════════════════════════
+
+const PRODUCTION_RULES = {
+  "ราวบันได ไม้สัก180- ดิบ": {
+    type: "finished_good",
+    status: "always_cut",
+    raw_sku: "ราวบันได ไม้สัก200- ดิบ",
+    pieces_per_raw: 1,
+    note: "ตัด 20 ซม ออกจาก 200 เสมอ"
+  },
+  "ราวบันได ไม้สัก90- ดิบ": {
+    type: "finished_good_conditional",
+    raw_sku: "ราวบันได ไม้สัก200- ดิบ",
+    pieces_per_raw: 1,
+    note: "ตัดจาก 200 ถ้าสต๊อค 90 หมด"
+  },
+  "ราวบันได ไม้สัก50- ดิบ": {
+    type: "finished_good_conditional",
+    raw_sku: "ราวบันได ไม้สัก200- ดิบ",
+    pieces_per_raw: 4,
+    note: "ตัด 4 ชิ้นจาก 200 ถ้าสต๊อค 50 หมด"
+  },
+  "ราวบันได ไม้สัก20- ดิบ": {
+    type: "scrap",
+    status: "scrap_only",
+    note: "เศษเหลือ ไม่นับสต๊อค"
+  },
+  "วงกบประตูไม้สัก80x180": {
+    type: "finished_good",
+    status: "always_cut",
+    raw_sku: "วงกบประตูไม้สัก80x200",
+    pieces_per_raw: 1,
+    note: "ตัด 20 ซม ออกจาก 80x200 เสมอ"
+  }
+};
+
+const SKU_MAPPING = {
+  'วงกบประตูไม้สักแท้ งานโรงงาน ขนาดมาตรฐาน แข็งแรง ทนน้ำทนปลวก|วงกบประตู 80x200': 'วงกบประตูไม้สัก80x200',
+  'วงกบประตูไม้สักแท้ งานโรงงาน ขนาดมาตรฐาน แข็งแรง ทนน้ำทนปลวก|วงกบประตู 100x200': 'วงกบประตูไม้สัก100x200',
+  'ขี้เลื่อยไม้สักแท้ แห้ง ไม้ชื้น เนื้อละเอียด(Sawdust) สำหรับโปวไม้ งานศิลปะ|1000': 'ขี้เลื่อยไม้สัก - 1000g.',
+  'ขี้เลื่อยไม้สักแท้ แห้ง ไม้ชื้น เนื้อละเอียด(Sawdust) สำหรับโปวไม้ งานศิลปะ|500': 'ขี้เลื่อยไม้สัก - 500g.',
+  'ขี้เลื่อยไม้สักแท้ แห้ง ไม้ชื้น เนื้อละเอียด(Sawdust) สำหรับโปวไม้ งานศิลปะ|250': 'ขี้เลื่อยไม้สัก - 250g.',
+  'กาวแหงเร็ว กาวรอน ขวดใหญสุด 50g. กาว502|1 ขวด': 'กาวร้อน502(ขวด)',
+};
+
+let currentOrders = [];
+let skuSummary = {};
+
+// PDF Upload Handler
+document.getElementById('pdf-upload').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  currentOrders = [];
+  skuSummary = {};
+
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const textContent = await page.getTextContent();
+    const text = textContent.items.map(item => item.str).join(' ');
+
+    const order = parseShopeeOrder(text);
+    if (order && order.items.length > 0) {
+      currentOrders.push(order);
+
+      for (const item of order.items) {
+        const skuKey = item.name + '|' + item.variant;
+        const skuDCName = SKU_MAPPING[skuKey] || 'UNKNOWN: ' + item.name;
+
+        if (!skuSummary[skuDCName]) {
+          skuSummary[skuDCName] = {
+            shopee_name: item.name,
+            shopee_variant: item.variant,
+            qty: 0,
+            orders: [],
+            type: getSkuType(skuDCName),
+            rule: PRODUCTION_RULES[skuDCName]
+          };
+        }
+        skuSummary[skuDCName].qty++;
+        skuSummary[skuDCName].orders.push(order.code4);
+      }
+    }
+  }
+
+  renderPickingList();
+  renderOrders();
+  renderProductionNotes();
+});
+
+function getSkuType(sku) {
+  const rule = PRODUCTION_RULES[sku];
+  if (rule) {
+    if (rule.type === "scrap") return "🗑️ Scrap";
+    if (rule.status === "always_cut") return "🔪 Always Cut";
+    if (rule.type === "finished_good_conditional") return "❓ Cut If Out";
+    if (rule.type === "finished_good") return "📦 Finished";
+  }
+  return "📦 Raw";
+}
+
+function parseShopeeOrder(text) {
+  const orderNoMatch = text.match(/Shopee Order No\.\s+(\d+[A-Z0-9]+)/);
+  const code4Match = text.match(/(\d+[A-Z0-9]{3})/);
+
+  const itemRegex = /(\d+)\s+(.+?)\s+×\s+(\d+)|#\s+(\d+)\s+(.+?)\s+(\d+)(?=\s*#|\s*Shopee|$)/g;
+  const items = [];
+  let match;
+
+  while ((match = itemRegex.exec(text)) !== null) {
+    const name = (match[2] || match[5] || '').trim();
+    if (name && name.length > 5) {
+      items.push({
+        name: name,
+        variant: extractVariant(text, name),
+        qty: parseInt(match[3] || match[6] || 1)
+      });
+    }
+  }
+
+  return {
+    orderNo: orderNoMatch ? orderNoMatch[1] : 'UNKNOWN',
+    code4: code4Match ? code4Match[1].slice(-4) : 'XXXX',
+    items: items.slice(0, 5)
+  };
+}
+
+function extractVariant(text, productName) {
+  const idx = text.indexOf(productName);
+  if (idx === -1) return '';
+
+  const after = text.substring(idx + productName.length, idx + productName.length + 100);
+  const variantMatch = after.match(/([^\d]+([\dx×\-\s]+\s*(ซม|cm|มม|mm|ขวด|อัน|g|กรัม)))/i);
+
+  return variantMatch ? variantMatch[1].trim() : '';
+}
+
+function renderPickingList() {
+  const tbody = document.getElementById('sku-table');
+  const skus = Object.keys(skuSummary).sort();
+
+  if (skus.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px;">No items found</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = skus.map((sku, idx) => {
+    const data = skuSummary[sku];
+    const rule = PRODUCTION_RULES[sku];
+    const isCut = rule && (rule.status === "always_cut" || rule.type === "finished_good_conditional");
+    const isScrap = rule && rule.type === "scrap";
+
+    let cutFromHtml = '';
+    if (isCut && rule.raw_sku) {
+      cutFromHtml = `<div class="cut-from ${rule.type === "finished_good_conditional" ? 'cut-conditional' : ''}">
+        ✂️ ตัดจาก: ${rule.raw_sku} (${rule.pieces_per_raw} ชิ้น)
+      </div>`;
+    }
+
+    return `
+      <tr class="${isCut ? 'row-cut' : ''} ${isScrap ? 'row-picked' : ''}">
+        <td>${idx + 1}</td>
+        <td>
+          <strong class="sku-name">${sku}</strong>
+          <div class="sku-detail">${data.shopee_variant}</div>
+          ${cutFromHtml}
+        </td>
+        <td>${getSkuType(sku)}</td>
+        <td><span class="qty-badge ${data.qty >= 3 ? 'high' : ''}">${data.qty}</span></td>
+        <td><input type="checkbox" class="checkbox" ${isScrap ? 'disabled' : ''} onchange="updateProgress(this)"></td>
+        <td><small>${data.orders.join(', ')}</small></td>
+      </tr>
+    `;
+  }).join('');
+
+  updateStats();
+}
+
+function renderProductionNotes() {
+  const notes = Object.values(skuSummary)
+    .filter(data => data.rule && (data.rule.status === "always_cut" || data.rule.type === "finished_good_conditional"))
+    .map(data => ({
+      sku: Object.keys(skuSummary).find(k => skuSummary[k] === data),
+      rule: data.rule
+    }));
+
+  const notesContainer = document.getElementById('production-notes');
+
+  if (notes.length === 0) {
+    notesContainer.innerHTML = '';
+    return;
+  }
+
+  notesContainer.innerHTML = `
+    <div class="production-note">
+      <strong>⚙️ Production Rules (ต้องตัดสินค้า):</strong><br>
+      ${notes.map(n => `
+        • <strong>${n.sku}</strong>: ${n.rule.note}
+      `).join('<br>')}
+    </div>
+  `;
+}
+
+function renderOrders() {
+  const container = document.getElementById('orders-container');
+
+  if (currentOrders.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 32px; color: var(--text-muted);">No orders found</div>';
+    return;
+  }
+
+  container.innerHTML = currentOrders.map(o => `
+    <div class="order-card">
+      <div class="order-id">Order #${o.code4} (${o.orderNo})</div>
+      <div class="order-items">
+        ${o.items.map(i => `• ${i.name}<br/>  ขนาด: ${i.variant} × ${i.qty} ชิ้น`).join('<br/>')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateStats() {
+  const skus = Object.keys(skuSummary);
+  const raw = skus.filter(s => !PRODUCTION_RULES[s] || PRODUCTION_RULES[s].type === "raw_material").length;
+  const finished = skus.filter(s => PRODUCTION_RULES[s] && PRODUCTION_RULES[s].type !== "scrap" && PRODUCTION_RULES[s].type !== "raw_material").length;
+  const cut = skus.filter(s => PRODUCTION_RULES[s] && (PRODUCTION_RULES[s].status === "always_cut" || PRODUCTION_RULES[s].type === "finished_good_conditional")).length;
+  const totalItems = Object.values(skuSummary).reduce((s, d) => s + d.qty, 0);
+  const picked = document.querySelectorAll('.checkbox:checked').length;
+
+  document.getElementById('stat-orders').textContent = currentOrders.length;
+  document.getElementById('stat-raw').textContent = raw;
+  document.getElementById('stat-finished').textContent = finished;
+  document.getElementById('stat-cut').textContent = cut;
+}
+
+function updateProgress(checkbox) {
+  checkbox.closest('tr').classList.toggle('row-picked');
+  updateStats();
+}
+
+function clearData() {
+  if (confirm('Clear all data?')) {
+    currentOrders = [];
+    skuSummary = {};
+    document.getElementById('sku-table').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px;">Upload PDF to see picking list</td></tr>';
+    document.getElementById('orders-container').innerHTML = '<div style="text-align: center; padding: 32px;">Upload PDF to see orders</div>';
+    document.getElementById('production-notes').innerHTML = '';
+    document.getElementById('pdf-upload').value = '';
+    updateStats();
+  }
+}
+
+updateStats();
+</script>
+
+</body>
+</html>

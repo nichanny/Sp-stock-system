@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Deduction Dashboard - Correct Logic</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #6B3A1F;
+  --primary-dark: #4E2910;
+  --primary-light: #F2E8DA;
+  --success: #1D5C35;
+  --warning: #B8860B;
+  --danger: #B83220;
+  --border: rgba(107,58,31,0.15);
+  --text: #1A120A;
+  --text-muted: #5A3E28;
+}
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: linear-gradient(135deg, var(--primary-light) 0%, #FBF7F1 100%);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+.header {
+  background: var(--primary-dark);
+  color: white;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+.header p { opacity: 0.9; font-size: 14px; }
+
+.dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-group { margin-bottom: 16px; }
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Sarabun', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(107, 58, 31, 0.1);
+}
+
+.info-box {
+  background: #F5EDE0;
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: 'Sarabun', sans-serif;
+  transition: all 0.3s;
+}
+
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+
+.btn-secondary { background: var(--border); color: var(--text); }
+.btn-secondary:hover { background: rgba(107,58,31,0.25); }
+
+.btn-danger { background: var(--danger); color: white; }
+
+.log-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 12px;
+}
+
+.log-table th {
+  background: var(--primary);
+  color: white;
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.log-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.log-table tr:hover { background: var(--primary-light); }
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 70px;
+}
+
+.status-deduct { background: #FEF0EE; color: var(--danger); }
+.status-add { background: #EBF5EE; color: var(--success); }
+
+.alert {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.alert-success { background: #EBF5EE; color: var(--success); border: 1px solid var(--success); }
+.alert-warning { background: #FFF8DC; color: var(--warning); border: 1px solid var(--warning); }
+.alert-danger { background: #FEF0EE; color: var(--danger); border: 1px solid var(--danger); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.stat {
+  background: var(--primary-light);
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.stat-value { font-size: 18px; font-weight: 700; color: var(--primary); }
+
+@media (max-width: 768px) {
+  .dashboard { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>📦 Stock Deduction Dashboard</h1>
+    <p>✓ Manual cutting with correct logic - Shows target length, not scrap</p>
+  </div>
+
+  <div class="dashboard">
+
+    <!-- Form Section -->
+    <div class="card">
+      <h2>🔪 ตัดสต๊อค</h2>
+
+      <div id="alert-container"></div>
+
+      <div class="form-group">
+        <label>พนักงานผู้ดำเนิน *</label>
+        <input type="text" id="operator-name" placeholder="ชื่อ-นามสกุล" />
+      </div>
+
+      <div class="form-group">
+        <label>เลือก SKU *</label>
+        <select id="sku-select" onchange="updateSkuInfo()">
+          <option value="">-- เลือกสินค้า --</option>
+        </select>
+      </div>
+
+      <div id="sku-info" class="info-box" style="display: none;"></div>
+
+      <div class="form-group">
+        <label>จำนวนที่ตัด *</label>
+        <input type="number" id="quantity" min="1" value="1" />
+      </div>
+
+      <div class="form-group">
+        <label>หมายเหตุ (ไม่บังคับ)</label>
+        <textarea id="note" rows="3" placeholder="เช่น: Order #1234"></textarea>
+      </div>
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="deductStock()">✂️ ตัดสต๊อค</button>
+        <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">ตัดแล้ววันนี้</div>
+          <div class="stat-value" id="today-count">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">รวมทั้งหมด</div>
+          <div class="stat-value" id="total-count">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Section -->
+    <div class="card">
+      <h2>📜 History Log</h2>
+      <div class="form-group">
+        <button class="btn btn-secondary" style="margin: 0;" onclick="clearLog()">🗑️ Clear Log</button>
+      </div>
+      <div style="max-height: 500px; overflow-y: auto;">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th width="15%">Time</th>
+              <th width="25%">SKU</th>
+              <th width="10%">Qty</th>
+              <th width="20%">Operator</th>
+              <th width="30%">Type</th>
+            </tr>
+          </thead>
+          <tbody id="log-body">
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">ยังไม่มีการตัดสต๊อค</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Production Rules Info -->
+  <div class="card">
+    <h2>⚙️ Production Rules (สินค้าที่ต้องตัด)</h2>
+    <div id="rules-container"></div>
+  </div>
+
+</div>
+
+<script>
+
+// ═══════════════════════════════════════════════════════
+// PRODUCTION RULES - แสดงความยาวสินค้าที่เป็นเป้าหมาย
+// ═══════════════════════════════════════════════════════
+
+const PRODUCTION_RULES = {
+  "ราวบันได ไม้สัก200- ดิบ": {
+    type: "raw_material",
+    note: "วัตถุดิบหลัก"
+  },
+  "ราวบันได ไม้สัก180- ดิบ": {
+    type: "finished_good",
+    status: "always_cut",
+    raw_sku: "ราวบันได ไม้สัก200- ดิบ",
+    target_length: "180 ซม",
+    source_length: "200 ซม",
+    scrap: "20 ซม (ไม่นับ)",
+    operations: [
+      { sku: "ราวบันได ไม้สัก200- ดิบ", qty: -1, desc: "ลด raw material" },
+      { sku: "ราวบันได ไม้สัก180- ดิบ", qty: 1, desc: "เพิ่มสินค้าจากการตัด" }
+    ],
+    note: "ต้องตัด 180 ซม พอ (เศษเหลือ 20 ซม)"
+  },
+  "ราวบันได ไม้สัก90- ดิบ": {
+    type: "finished_good_conditional",
+    raw_sku: "ราวบันได ไม้สัก200- ดิบ",
+    target_length: "90 ซม",
+    source_length: "200 ซม",
+    scrap: "20 ซม (ไม่นับ)",
+    pieces_output: 2,
+    operations: [
+      { sku: "ราวบันได ไม้สัก200- ดิบ", qty: -1, desc: "ลด raw material" },
+      { sku: "ราวบันได ไม้สัก90- ดิบ", qty: 2, desc: "เพิ่มสินค้าจากการตัด" }
+    ],
+    note: "ตัด 90 ซม ถ้าสต๊อค 90 หมด (ได้ 2 อัน)"
+  },
+  "ราวบันได ไม้สัก50- ดิบ": {
+    type: "finished_good_conditional",
+    raw_sku: "ราวบันได ไม้สัก200- ดิบ",
+    target_length: "50 ซม",
+    source_length: "200 ซม",
+    scrap: "0 ซม (ไม่มี)",
+    pieces_output: 4,
+    operations: [
+      { sku: "ราวบันได ไม้สัก200- ดิบ", qty: -1, desc: "ลด raw material" },
+      { sku: "ราวบันได ไม้สัก50- ดิบ", qty: -1, desc: "ตัดเบิก (ลูกค้าสั่ง)" },
+      { sku: "ราวบันได ไม้สัก50- ดิบ", qty: 3, desc: "เพิ่ม (ได้4 ขาย1 เหลือ3)" }
+    ],
+    note: "ตัด 50 ซม ×4 ชิ้น ถ้าสต๊อค 50 หมด"
+  },
+  "ราวบันได ไม้สัก20- ดิบ": {
+    type: "scrap",
+    note: "เศษเหลือ ไม่นับสต๊อค"
+  },
+  "วงกบประตูไม้สัก80x200": {
+    type: "raw_material",
+    note: "วัตถุดิบหลัก"
+  },
+  "วงกบประตูไม้สัก80x180": {
+    type: "finished_good",
+    status: "always_cut",
+    raw_sku: "วงกบประตูไม้สัก80x200",
+    target_length: "80x180",
+    source_length: "80x200",
+    scrap: "20 ซม (ไม่นับ)",
+    operations: [
+      { sku: "วงกบประตูไม้สัก80x200", qty: -1, desc: "ลด raw material" },
+      { sku: "วงกบประตูไม้สัก80x180", qty: 1, desc: "เพิ่มสินค้าจากการตัด" }
+    ],
+    note: "ต้องตัด 80x180 พอ (เศษเหลือ 20 ซม)"
+  },
+  "ขี้เลื่อยไม้สัก - 250g.": { type: "raw_material" },
+  "ขี้เลื่อยไม้สัก - 500g.": { type: "raw_material" },
+  "ขี้เลื่อยไม้สัก - 1000g.": { type: "raw_material" },
+  "กาวร้อน502(ขวด)": { type: "raw_material" }
+};
+
+const CURRENT_STOCK = {
+  "ราวบันได ไม้สัก200- ดิบ": 15,
+  "ราวบันได ไม้สัก90- ดิบ": 3,
+  "ราวบันได ไม้สัก50- ดิบ": 2,
+  "วงกบประตูไม้สัก80x200": 8,
+  "ขี้เลื่อยไม้สัก - 1000g.": 12
+};
+
+let deductionLog = [];
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+
+function initializePage() {
+  populateSKUSelect();
+  renderProductionRules();
+  loadLogFromStorage();
+  updateStats();
+}
+
+function populateSKUSelect() {
+  const select = document.getElementById('sku-select');
+  const skus = Object.keys(PRODUCTION_RULES).sort();
+  skus.forEach(sku => {
+    const option = document.createElement('option');
+    option.value = sku;
+    option.textContent = sku;
+    select.appendChild(option);
+  });
+}
+
+function renderProductionRules() {
+  const container = document.getElementById('rules-container');
+  const rules = Object.entries(PRODUCTION_RULES)
+    .filter(([, rule]) => rule.status === "always_cut" || rule.type === "finished_good_conditional");
+
+  if (rules.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted);">ไม่มี production rules</p>';
+    return;
+  }
+
+  container.innerHTML = rules.map(([sku, rule]) => {
+    let html = `<div class="info-box">`;
+    html += `<strong>📦 ${sku}</strong><br>`;
+    html += `<strong>ต้องตัด:</strong> ${rule.target_length}<br>`;
+    html += `<strong>จาก:</strong> ${rule.source_length}<br>`;
+    html += `<strong>เศษ:</strong> ${rule.scrap}<br>`;
+    html += `${rule.note}`;
+    html += `</div>`;
+    return html;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// SKU INFO & DEDUCTION
+// ═══════════════════════════════════════════════════════
+
+function updateSkuInfo() {
+  const sku = document.getElementById('sku-select').value;
+  const infoBox = document.getElementById('sku-info');
+
+  if (!sku) {
+    infoBox.style.display = 'none';
+    return;
+  }
+
+  const rule = PRODUCTION_RULES[sku];
+  const stock = CURRENT_STOCK[sku] || 0;
+
+  let info = `<strong>📊 Current Stock:</strong> ${stock} ชิ้น<br>`;
+
+  if (rule.status === "always_cut") {
+    info += `<span style="color: var(--danger); font-weight: 600;">⚠️ ต้องตัด ${rule.target_length} เสมอ</span><br>`;
+    info += `<small>จาก: ${rule.source_length} | เศษ: ${rule.scrap}</small>`;
+  } else if (rule.type === "finished_good_conditional") {
+    if (stock > 0) {
+      info += `<span style="color: var(--success); font-weight: 600;">✅ มีสต๊อค → ใช้ตรง</span>`;
+    } else {
+      info += `<span style="color: var(--warning); font-weight: 600;">❓ หมด → ต้องตัด ${rule.target_length}</span><br>`;
+      info += `<small>จาก: ${rule.source_length} | เศษ: ${rule.scrap}</small>`;
+    }
+  }
+
+  infoBox.innerHTML = info;
+  infoBox.style.display = 'block';
+}
+
+function deductStock() {
+  const operator = document.getElementById('operator-name').value.trim();
+  const sku = document.getElementById('sku-select').value;
+  const quantity = parseInt(document.getElementById('quantity').value) || 1;
+  const note = document.getElementById('note').value.trim();
+
+  if (!operator) {
+    showAlert('⚠️ ต้องใส่ชื่อพนักงาน', 'warning');
+    return;
+  }
+  if (!sku) {
+    showAlert('⚠️ ต้องเลือก SKU', 'warning');
+    return;
+  }
+  if (quantity <= 0) {
+    showAlert('⚠️ จำนวนต้องมากกว่า 0', 'warning');
+    return;
+  }
+
+  const rule = PRODUCTION_RULES[sku];
+  const now = new Date();
+  const timestamp = now.toLocaleTimeString('th-TH');
+  const dateStr = now.toLocaleDateString('th-TH');
+
+  let alertMsg = '';
+  const logEntries = [];
+
+  // ═══════════════════════════════════════════════════════
+  // SMART LOGIC
+  // ═══════════════════════════════════════════════════════
+
+  if (rule.status === "always_cut") {
+    // ✂️ ALWAYS CUT
+    alertMsg = `✂️ ต้องตัด ${rule.target_length} (จาก ${rule.source_length})\n`;
+    
+    rule.operations.forEach(op => {
+      CURRENT_STOCK[op.sku] = (CURRENT_STOCK[op.sku] || 0) + op.qty;
+      
+      const logEntry = {
+        time: timestamp,
+        date: dateStr,
+        sku: op.sku,
+        qty: op.qty,
+        operator: operator,
+        note: op.desc,
+        type: op.qty < 0 ? 'deduct' : 'add'
+      };
+      logEntries.push(logEntry);
+      
+      alertMsg += `  ${op.qty < 0 ? '📉' : '📈'} ${op.sku}: ${op.qty > 0 ? '+' : ''}${op.qty}\n`;
+    });
+    
+  } else if (rule.type === "finished_good_conditional") {
+    // ❓ CONDITIONAL CUT
+    const currentStock = CURRENT_STOCK[sku] || 0;
+
+    if (currentStock > 0) {
+      // ✅ Use own stock
+      alertMsg = `✅ มีสต๊อค ${sku} → ใช้ตรง\n`;
+      
+      const logEntry = {
+        time: timestamp,
+        date: dateStr,
+        sku: sku,
+        qty: -quantity,
+        operator: operator,
+        note: note || '-',
+        type: 'deduct'
+      };
+      logEntries.push(logEntry);
+      
+      CURRENT_STOCK[sku] -= quantity;
+      alertMsg += `  📉 ${sku}: -${quantity}`;
+      
+    } else {
+      // ✂️ Cut from raw material
+      alertMsg = `✂️ สต๊อค ${sku} หมด → ต้องตัด ${rule.target_length} (จาก ${rule.source_length})\n`;
+      
+      rule.operations.forEach(op => {
+        CURRENT_STOCK[op.sku] = (CURRENT_STOCK[op.sku] || 0) + op.qty;
+        
+        const logEntry = {
+          time: timestamp,
+          date: dateStr,
+          sku: op.sku,
+          qty: op.qty,
+          operator: operator,
+          note: op.desc,
+          type: op.qty < 0 ? 'deduct' : 'add'
+        };
+        logEntries.push(logEntry);
+        
+        alertMsg += `  ${op.qty < 0 ? '📉' : '📈'} ${op.sku}: ${op.qty > 0 ? '+' : ''}${op.qty}\n`;
+      });
+    }
+    
+  } else {
+    // 📦 RAW MATERIAL - Direct deduction
+    alertMsg = `✅ ตัด ${sku}: -${quantity}`;
+    CURRENT_STOCK[sku] = (CURRENT_STOCK[sku] || 0) - quantity;
+    
+    const logEntry = {
+      time: timestamp,
+      date: dateStr,
+      sku: sku,
+      qty: -quantity,
+      operator: operator,
+      note: note || '-',
+      type: 'deduct'
+    };
+    logEntries.push(logEntry);
+  }
+
+  showAlert(alertMsg, rule.status === "always_cut" ? 'danger' : rule.type === "finished_good_conditional" && (CURRENT_STOCK[sku] || 0) <= 0 ? 'warning' : 'success');
+
+  // Add to log
+  logEntries.forEach(entry => {
+    deductionLog.unshift(entry);
+  });
+
+  saveLogToStorage();
+  updateLogTable();
+  updateStats();
+  resetForm();
+}
+
+function resetForm() {
+  document.getElementById('operator-name').value = '';
+  document.getElementById('sku-select').value = '';
+  document.getElementById('quantity').value = '1';
+  document.getElementById('note').value = '';
+  document.getElementById('sku-info').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// UI & UTILITIES
+// ═══════════════════════════════════════════════════════
+
+function showAlert(message, type) {
+  const container = document.getElementById('alert-container');
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.textContent = message.replace(/\n/g, '\n');
+  alert.style.whiteSpace = 'pre-wrap';
+  container.innerHTML = '';
+  container.appendChild(alert);
+
+  setTimeout(() => {
+    alert.remove();
+  }, 6000);
+}
+
+function updateLogTable() {
+  const tbody = document.getElementById('log-body');
+
+  if (deductionLog.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">ยังไม่มีการตัดสต๊อค</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = deductionLog.slice(0, 30).map(entry => {
+    const badgeClass = entry.type === 'deduct' ? 'status-deduct' : 'status-add';
+    const badge = entry.type === 'deduct' ? '📉 ลด' : '📈 เพิ่ม';
+    
+    return `
+      <tr>
+        <td>${entry.time}</td>
+        <td><small>${entry.sku}</small></td>
+        <td><strong>${entry.qty > 0 ? '+' : ''}${entry.qty}</strong></td>
+        <td><small>${entry.operator}</small></td>
+        <td><span class="status-badge ${badgeClass}">${badge}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function updateStats() {
+  const today = new Date().toLocaleDateString('th-TH');
+  const todayCount = deductionLog.filter(e => e.date === today).length;
+  const totalCount = deductionLog.length;
+
+  document.getElementById('today-count').textContent = todayCount;
+  document.getElementById('total-count').textContent = totalCount;
+}
+
+function clearLog() {
+  if (confirm('ยืนยันการลบ log ทั้งหมด?')) {
+    deductionLog = [];
+    localStorage.removeItem('deductionLog');
+    updateLogTable();
+    updateStats();
+  }
+}
+
+function saveLogToStorage() {
+  localStorage.setItem('deductionLog', JSON.stringify(deductionLog));
+}
+
+function loadLogFromStorage() {
+  const saved = localStorage.getItem('deductionLog');
+  if (saved) {
+    deductionLog = JSON.parse(saved);
+    updateLogTable();
+  }
+}
+
+// Start
+initializePage();
+
+</script>
+
+</body>
+</html>

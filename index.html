@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sp+stock System - Stock Deduction & Picking List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #6B3A1F;
+      --primary-dark: #4E2910;
+      --primary-light: #F2E8DA;
+      --success: #1D5C35;
+      --text: #1A120A;
+      --text-muted: #5A3E28;
+      --border: rgba(107,58,31,0.15);
+    }
+
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: linear-gradient(135deg, var(--primary-light) 0%, #FBF7F1 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    .header {
+      background: var(--primary-dark);
+      color: white;
+      padding: 40px 32px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 32px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-bottom: 0;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .card-icon {
+      font-size: 48px;
+      line-height: 1;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+
+    .card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: auto;
+    }
+
+    .card-link::after {
+      content: "→";
+      transition: transform 0.3s;
+    }
+
+    .card:hover .card-link::after {
+      transform: translateX(4px);
+    }
+
+    .info-box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      border-left: 4px solid var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .info-title {
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .info-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .info-text strong {
+      color: var(--text);
+    }
+
+    @media (max-width: 600px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 28px;
+      }
+
+      .header {
+        padding: 32px 24px;
+        margin-bottom: 24px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>📦 Sp+stock System</h1>
+    <p>Stock Deduction & Picking List</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+
+    <!-- Picking List Card -->
+    <a href="picking_list_smart_production.html" class="card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Picking List</div>
+      <div class="card-desc">
+        Upload Shopee PDF และดูรายการสินค้า ที่ต้อง Pick ด้วยชื่อสต๊อค
+      </div>
+      <div class="card-link">เปิด</div>
+    </a>
+
+    <!-- Stock Deduction Card -->
+    <a href="stock_deduction_correct.html" class="card">
+      <div class="card-icon">🔪</div>
+      <div class="card-title">Stock Deduction</div>
+      <div class="card-desc">
+        ตัดสต๊อค Manual ด้วย Smart Logic และบันทึก Log อัตโนมัติ
+      </div>
+      <div class="card-link">เปิด</div>
+    </a>
+
+  </div>
+
+  <!-- Info Box -->
+  <div class="info-box">
+    <div class="info-title">ℹ️ วิธีใช้งาน</div>
+    <div class="info-text">
+      <strong>1. Picking List:</strong> Upload PDF จาก Shopee → ดูรายการสินค้าที่ต้อง Pick<br><br>
+      <strong>2. Stock Deduction:</strong> เลือก SKU → ใส่จำนวน → กด "ตัด" → Log บันทึกอัตโนมัติ
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

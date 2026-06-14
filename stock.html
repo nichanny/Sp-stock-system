@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dc Factory Stock</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --br:#4E2910;--brd:#2C1A0E;--brl:#A0674A;--br50:#F6EFE8;--br100:#E8D5C4;
+  --green:#1D5C35;--gbg:#EBF5EE;--gbd:#B7DFC6;
+  --amber:#92600A;--abg:#FEF3DC;--abd:#F0D89A;
+  --red:#9B1C1C;--rbg:#FEF0EE;--rbd:#F5C0B8;
+  --blue:#185FA5;--bbg:#EBF0F8;--bbd:#B5D4F4;
+  --border:rgba(107,58,31,0.14);
+  --txt:#2C1A0E;--txt2:#5A3E28;--txt3:#A0674A;
+  --bg:#FDFAF6;--bg2:#F6EFE8;--bgw:#FFFFFF;
+  --r:10px;--rm:8px;
+}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px}
+
+/* ── LOGIN ── */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,var(--brd) 0%,var(--br) 100%);padding:20px}
+.login-card{background:var(--bgw);border-radius:16px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo .fn{font-size:26px;font-weight:700;color:var(--brd)}
+.login-logo .sn{font-size:13px;color:var(--txt3);margin-top:2px}
+.lbl{display:block;font-size:13px;font-weight:600;color:var(--br);margin-bottom:5px}
+.linput{width:100%;padding:12px 14px;border:1.5px solid var(--br100);border-radius:var(--rm);font-family:'Sarabun',sans-serif;font-size:16px;color:var(--txt);background:white;transition:border-color .2s;margin-bottom:14px}
+.linput:focus{outline:none;border-color:var(--br)}
+.login-btn{width:100%;padding:13px;background:var(--brd);color:white;border:none;border-radius:var(--rm);font-family:'Sarabun',sans-serif;font-size:16px;font-weight:600;cursor:pointer;transition:background .2s}
+.login-btn:hover{background:#1A0E07}
+.lerr{color:var(--red);font-size:13px;margin-bottom:10px;display:none}
+
+/* ── APP ── */
+#app{display:none}
+.topbar{background:var(--brd);color:white;padding:0 16px;height:52px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.tb-brand{font-size:15px;font-weight:700}
+.tb-user{margin-left:auto;font-size:13px;opacity:.85;display:flex;align-items:center;gap:8px}
+.tb-user button{background:rgba(255,255,255,.12);border:none;color:white;font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif}
+.tb-user button:hover{background:rgba(255,255,255,.22)}
+
+/* ── NAV ── */
+.nav-tabs{background:var(--bgw);border-bottom:1px solid var(--border);display:flex;padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav-tab{padding:12px 14px;font-size:14px;font-weight:500;color:var(--txt3);border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;font-family:'Sarabun',sans-serif;transition:color .2s,border-color .2s;flex-shrink:0}
+.nav-tab:hover{color:var(--br)}
+.nav-tab.active{color:var(--brd);border-bottom-color:var(--brd)}
+
+/* ── PAGE ── */
+.page{display:none;padding:16px;max-width:720px;margin:0 auto}
+.page.active{display:block}
+
+/* ── ALERTS ── */
+.alert{padding:12px 14px;border-radius:var(--r);font-size:14px;margin-bottom:14px;display:none;line-height:1.5}
+.alert.show{display:block}
+.a-ok{background:var(--gbg);color:var(--green);border:1px solid var(--gbd)}
+.a-warn{background:var(--abg);color:var(--amber);border:1px solid var(--abd)}
+.a-err{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+.a-info{background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)}
+
+/* ── CARD ── */
+.card{background:var(--bgw);border-radius:var(--r);border:1px solid var(--border);margin-bottom:14px;overflow:hidden}
+.card-head{padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;color:var(--brd);display:flex;align-items:center;gap:8px}
+.card-body{padding:16px}
+
+/* ── STATS ── */
+.stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+@media(min-width:480px){.stat-row{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--bgw);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.stat-label{font-size:12px;color:var(--txt3);margin-bottom:3px}
+.stat-value{font-size:22px;font-weight:700;color:var(--brd)}
+.stat-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+
+/* ── STOCK TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{background:var(--bg2);color:var(--br);font-weight:600;font-size:12px;text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--border);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--bg2)}
+.qty-ok{color:var(--green);font-weight:600}
+.qty-low{color:var(--amber);font-weight:600}
+.qty-zero{color:var(--red);font-weight:600}
+.qty-inf{color:var(--txt3)}
+
+/* ── BADGE ── */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-ok{background:var(--gbg);color:var(--green)}
+.b-low{background:var(--abg);color:var(--amber)}
+.b-zero{background:var(--rbg);color:var(--red)}
+.b-inf{background:var(--bg2);color:var(--txt3)}
+
+/* ── FORM ── */
+.fg{margin-bottom:13px}
+.fl{display:block;font-size:13px;font-weight:600;color:var(--br);margin-bottom:5px}
+.fi,.fs,.fta{width:100%;padding:10px 12px;border:1.5px solid var(--br100);border-radius:var(--rm);font-family:'Sarabun',sans-serif;font-size:15px;color:var(--txt);background:white;transition:border-color .2s}
+.fi:focus,.fs:focus,.fta:focus{outline:none;border-color:var(--br);box-shadow:0 0 0 3px rgba(107,58,31,.08)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:420px){.frow{grid-template-columns:1fr}}
+.fhint{font-size:12px;color:var(--txt3);margin-top:4px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:var(--rm);font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-primary{background:var(--brd);color:white}
+.btn-primary:hover{background:#1A0E07}
+.btn-green{background:var(--green);color:white}
+.btn-green:hover{background:#155228}
+.btn-amber{background:var(--amber);color:white}
+.btn-amber:hover{background:#7A500A}
+.btn-red{background:var(--red);color:white}
+.btn-red:hover{background:#7A1515}
+.btn-ghost{background:var(--bg2);color:var(--brd);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--br100)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-full{width:100%;justify-content:center}
+
+/* ── LOW STOCK BANNER ── */
+.low-banner{background:var(--abg);border:1px solid var(--abd);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;display:none}
+.low-banner.show{display:block}
+.low-banner h4{color:var(--amber);font-size:14px;margin-bottom:6px}
+.low-banner ul{font-size:13px;color:var(--txt);padding-left:16px;line-height:1.9}
+
+/* ── LOG TABLE ── */
+.log-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.log-tbl th{background:var(--bg2);color:var(--br);font-weight:600;font-size:11px;text-align:left;padding:9px 10px;border-bottom:1.5px solid var(--border);white-space:nowrap}
+.log-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.log-tbl tr:last-child td{border-bottom:none}
+.log-tbl tr.cancelled td{opacity:.4;text-decoration:line-through}
+.l-deduct{color:var(--red)}
+.l-add{color:var(--green)}
+.l-cancel{color:var(--txt3)}
+
+/* ── SEARCH BOX ── */
+.search-row{display:flex;gap:8px;margin-bottom:12px}
+.search-row .fi{flex:1}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;color:var(--txt3);font-size:14px}
+.spinner{width:18px;height:18px;border:2px solid var(--br100);border-top-color:var(--br);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── CANCEL MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bgw);border-radius:16px;padding:24px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal h3{font-size:16px;font-weight:700;color:var(--brd);margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+
+/* ── SETTINGS TABLE ── */
+.settings-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-sku{flex:1;font-size:13px;color:var(--txt)}
+.settings-row .fi{width:80px;text-align:center;padding:7px 8px;font-size:14px}
+
+/* ── MOBILE TWEAKS ── */
+@media(max-width:480px){
+  .page{padding:12px}
+  .tbl th,.tbl td{padding:8px 10px}
+  .log-tbl th,.log-tbl td{padding:7px 8px;font-size:12px}
+  .hide-mobile{display:none}
+  .btn{padding:10px 14px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="fn">📦 Dc Factory</div>
+      <div class="sn">ระบบจัดการสต๊อกสินค้า</div>
+    </div>
+    <label class="lbl" for="login-name">ชื่อผู้ใช้งาน</label>
+    <input class="linput" type="text" id="login-name" placeholder="เช่น โจ๊ก" autocomplete="name" />
+    <div class="lerr" id="login-err">กรุณาใส่ชื่อก่อนค่ะ</div>
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <div class="topbar">
+    <span class="tb-brand">Dc Factory Stock</span>
+    <div class="tb-user">
+      <span id="tb-user"></span>
+      <button onclick="doLogout()">ออก</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('overview',this)">📊 สต๊อก</button>
+    <button class="nav-tab" onclick="switchTab('add',this)">➕ เติม/คืน</button>
+    <button class="nav-tab" onclick="switchTab('log',this)">📋 Log</button>
+    <button class="nav-tab" onclick="switchTab('settings',this)">⚙️ ตั้งค่า</button>
+  </div>
+
+  <!-- ── OVERVIEW ── -->
+  <div class="page active" id="page-overview">
+    <div class="low-banner" id="low-banner">
+      <h4>⚠️ สินค้าสต๊อกต่ำ — ควรเติมก่อนหมด</h4>
+      <ul id="low-list"></ul>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-label">สินค้าทั้งหมด</div><div class="stat-value" id="s-total">—</div><div class="stat-sub">รายการ</div></div>
+      <div class="stat"><div class="stat-label">สต๊อกต่ำ</div><div class="stat-value" id="s-low" style="color:var(--amber)">—</div><div class="stat-sub">รายการ</div></div>
+      <div class="stat"><div class="stat-label">หมดสต๊อก</div><div class="stat-value" id="s-zero" style="color:var(--red)">—</div><div class="stat-sub">รายการ</div></div>
+      <div class="stat"><div class="stat-label">ตัดวันนี้</div><div class="stat-value" id="s-today">—</div><div class="stat-sub">ครั้ง</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        📦 สต๊อกสินค้าทั้งหมด
+        <button class="btn btn-ghost btn-sm" onclick="loadStock()" style="margin-left:auto">↻ รีเฟรช</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr>
+            <th>สินค้า</th>
+            <th>คงเหลือ</th>
+            <th class="hide-mobile">ขั้นต่ำ</th>
+            <th class="hide-mobile">ต้นทุน/ชิ้น</th>
+            <th>สถานะ</th>
+          </tr></thead>
+          <tbody id="stock-tbody">
+            <tr><td colspan="5"><div class="loading"><div class="spinner"></div>กำลังโหลด...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADD / RETURN ── -->
+  <div class="page" id="page-add">
+    <div class="card" style="max-width:500px">
+      <div class="card-head">➕ เติม / คืนสต๊อก</div>
+      <div class="card-body">
+        <div class="alert" id="add-alert"></div>
+
+        <div class="fg">
+          <label class="fl">ประเภท *</label>
+          <select class="fs" id="add-type" onchange="onTypeChange()">
+            <option value="เติมสต๊อก">เติมสต๊อก — รับของเข้าโรงงาน</option>
+            <option value="คืนสต๊อก">คืนสต๊อก — ลูกค้ายกเลิก</option>
+          </select>
+        </div>
+
+        <!-- ค้นหา order number (แสดงเมื่อเลือก คืนสต๊อก) -->
+        <div class="fg" id="order-search-box" style="display:none">
+          <label class="fl">ค้นหาด้วย Order Number</label>
+          <div class="search-row">
+            <input class="fi" type="text" id="order-search" placeholder="ใส่ 4 ตัวสุดท้าย เช่น 5A3B" maxlength="10" />
+            <button class="btn btn-ghost" onclick="searchByOrder()">ค้นหา</button>
+          </div>
+          <div id="order-result" class="fhint"></div>
+        </div>
+
+        <div class="fg">
+          <label class="fl">สินค้า *</label>
+          <select class="fs" id="add-sku">
+            <option value="">-- เลือกสินค้า --</option>
+          </select>
+        </div>
+
+        <div class="frow">
+          <div class="fg">
+            <label class="fl">จำนวน *</label>
+            <input class="fi" type="number" id="add-qty" min="1" value="1" />
+          </div>
+          <div class="fg">
+            <label class="fl">อ้างอิง Order</label>
+            <input class="fi" type="text" id="add-ref" placeholder="เช่น 5A3B" maxlength="20" />
+          </div>
+        </div>
+
+        <!-- เหตุผล (แสดงเมื่อเลือก คืนสต๊อก) -->
+        <div class="fg" id="reason-box" style="display:none">
+          <label class="fl">เหตุผลที่คืน *</label>
+          <select class="fs" id="cancel-reason">
+            <option value="ลูกค้ายกเลิก">ลูกค้ายกเลิกคำสั่งซื้อ</option>
+            <option value="ของเสียหาย">ของเสียหาย / บรรจุภัณฑ์เสีย</option>
+            <option value="พิมพ์ผิด">พิมพ์ label ผิด / ส่งผิดออเดอร์</option>
+            <option value="ขนส่ง error">ขนส่ง error / บาร์โค้ดผิดพลาด</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+
+        <button class="btn btn-green btn-full" onclick="submitAdd()">✓ บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LOG ── -->
+  <div class="page" id="page-log">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-body" style="padding:12px 14px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input class="fi" type="date" id="log-date" style="width:150px;font-size:13px;padding:7px 10px" />
+          <select class="fs" id="log-action" style="width:160px;font-size:13px;padding:7px 10px">
+            <option value="">ทุกประเภท</option>
+            <option value="ตัดสต๊อก">ตัดสต๊อก</option>
+            <option value="เติมสต๊อก">เติมสต๊อก</option>
+            <option value="คืนสต๊อก">คืนสต๊อก</option>
+            <option value="ยกเลิก">ยกเลิก</option>
+          </select>
+          <input class="fi" type="text" id="log-order" placeholder="Order # ค้นหา" style="width:130px;font-size:13px;padding:7px 10px" />
+          <button class="btn btn-ghost btn-sm" onclick="filterLog()">ค้นหา</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetLog()">รีเซ็ต</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadLog()" style="margin-left:auto">↻</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">📋 ประวัติการเคลื่อนไหวสต๊อก</div>
+      <div style="overflow-x:auto">
+        <table class="log-tbl">
+          <thead><tr>
+            <th>วันที่/เวลา</th>
+            <th>ผู้ดำเนิน</th>
+            <th>ประเภท</th>
+            <th>สินค้า</th>
+            <th>จำนวน</th>
+            <th class="hide-mobile">อ้างอิง</th>
+            <th class="hide-mobile">เหตุผล</th>
+            <th>สถานะ</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="log-tbody">
+            <tr><td colspan="9"><div class="loading"><div class="spinner"></div>กำลังโหลด...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div class="page" id="page-settings">
+    <div class="card" style="max-width:560px">
+      <div class="card-head">⚙️ ตั้งค่าสินค้า — ขั้นต่ำ & ต้นทุน</div>
+      <div class="card-body">
+        <div class="alert" id="set-alert"></div>
+        <p style="font-size:13px;color:var(--txt3);margin-bottom:14px">ตั้งค่า minimum stock (แจ้งเตือนเมื่อต่ำกว่านี้) และต้นทุนต่อชิ้น สำหรับคำนวณมูลค่าสต๊อก</p>
+        <div style="display:grid;grid-template-columns:1fr 90px 90px 80px;gap:6px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:600;color:var(--br);padding:6px 4px">สินค้า</div>
+          <div style="font-size:12px;font-weight:600;color:var(--br);padding:6px 4px;text-align:center">ขั้นต่ำ</div>
+          <div style="font-size:12px;font-weight:600;color:var(--br);padding:6px 4px;text-align:center">ต้นทุน (฿)</div>
+          <div></div>
+        </div>
+        <div id="settings-list">
+          <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- CANCEL MODAL -->
+<div class="modal-bg" id="cancel-modal">
+  <div class="modal">
+    <h3>ยกเลิก Transaction</h3>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:14px">สต๊อกจะถูกคืนกลับอัตโนมัติ และบันทึก log การยกเลิกไว้</p>
+    <div class="fg">
+      <label class="fl">เหตุผลที่ยกเลิก *</label>
+      <select class="fs" id="modal-reason">
+        <option value="ลูกค้ายกเลิก">ลูกค้ายกเลิกคำสั่งซื้อ</option>
+        <option value="ของเสียหาย">ของเสียหาย / บรรจุภัณฑ์เสีย</option>
+        <option value="พิมพ์ผิด">พิมพ์ label ผิด / ส่งผิดออเดอร์</option>
+        <option value="ขนส่ง error">ขนส่ง error / บาร์โค้ดผิดพลาด</option>
+        <option value="อื่นๆ">อื่นๆ</option>
+      </select>
+    </div>
+    <div id="modal-info" style="font-size:13px;color:var(--txt2);background:var(--bg2);border-radius:var(--rm);padding:10px 12px;margin-bottom:4px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-red" onclick="confirmCancel()">ยืนยันยกเลิก</button>
+      <button class="btn btn-ghost" onclick="closeModal()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════
+// CONFIG
+// ════════════════════════════════
+const API_URL = "https://script.google.com/macros/s/AKfycbzBHBof5EJA3j75Kcal5ILKedbq0tDh-ezOtkXQvOm9QmkmaIYe8qYifaEKqo6gCcJW/exec";
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let currentUser = "";
+let stockData   = {};
+let logData     = [];
+let products    = [];
+let pendingCancelId = null;
+
+// ════════════════════════════════
+// LOGIN / LOGOUT
+// ════════════════════════════════
+function doLogin() {
+  const n = document.getElementById('login-name').value.trim();
+  if (!n) { document.getElementById('login-err').style.display='block'; return; }
+  currentUser = n;
+  localStorage.setItem('dcf_user', n);
+  startApp();
+}
+function doLogout() {
+  if (confirm('ออกจากระบบ?')) { localStorage.removeItem('dcf_user'); location.reload(); }
+}
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('tb-user').textContent = '👤 ' + currentUser;
+  loadAll();
+}
+window.addEventListener('DOMContentLoaded', () => {
+  const s = localStorage.getItem('dcf_user');
+  if (s) { currentUser = s; startApp(); }
+});
+
+// ════════════════════════════════
+// TABS
+// ════════════════════════════════
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+tab).classList.add('active');
+  if (tab==='log') loadLog();
+  if (tab==='settings') renderSettings();
+}
+
+// ════════════════════════════════
+// API
+// ════════════════════════════════
+async function apiGet(action) {
+  if (!API_URL) return mockData(action);
+  const r = await fetch(API_URL+'?action='+action);
+  return r.json();
+}
+async function apiPost(body) {
+  if (!API_URL) return { success:true, logId:'MOCK'+Date.now() };
+  const r = await fetch(API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+// Mock data
+function mockData(a) {
+  const SKUS = [
+    'ฝาปิดกลม','วงกบประตู 80x200','วงกบประตู 80x180',
+    'วงกบประตู 100x200','ประตูสายฝน 80x200',
+    'ประตูโมเดิร์น 80x180','ประตูโมเดิร์น 80x200 ขีดบวก+',
+    'กระต่ายขูดมะพร้าวไม้สัก รุ่นพิเศษ(เคลือบใส)'
+  ];
+  if (a==='getStock') {
+    const stock={};
+    SKUS.forEach((s,i)=>{
+      stock[s]={sku:s,qty:999999,minimum:10,unit:'ชิ้น',unit_cost:0};
+    });
+    return {success:true,stock};
+  }
+  if (a==='getLog') return {success:true,log:[]};
+  if (a==='getProducts') return {success:true,products:SKUS.map(s=>({
+    sku:s,display_name:s,convert_from:s==='วงกบประตู 80x180'?'วงกบประตู 80x200':'',track_stock:true
+  }))};
+  return {success:true};
+}
+
+// ════════════════════════════════
+// LOAD
+// ════════════════════════════════
+async function loadAll() { await Promise.all([loadStock(), loadProducts()]); }
+
+async function loadStock() {
+  const res = await apiGet('getStock');
+  if (!res.success) return;
+  stockData = res.stock;
+  renderStock();
+  updateStats();
+  checkLow();
+}
+async function loadLog() {
+  document.getElementById('log-tbody').innerHTML =
+    '<tr><td colspan="9"><div class="loading"><div class="spinner"></div>กำลังโหลด...</div></td></tr>';
+  const res = await apiGet('getLog');
+  if (!res.success) return;
+  logData = res.log;
+  renderLog(logData);
+}
+async function loadProducts() {
+  const res = await apiGet('getProducts');
+  if (!res.success) return;
+  products = res.products;
+  const sel = document.getElementById('add-sku');
+  sel.innerHTML = '<option value="">-- เลือกสินค้า --</option>';
+  res.products.filter(p=>p.track_stock).forEach(p=>{
+    const o = document.createElement('option');
+    o.value = p.sku; o.textContent = p.display_name;
+    sel.appendChild(o);
+  });
+}
+
+// ════════════════════════════════
+// RENDER STOCK
+// ════════════════════════════════
+function renderStock() {
+  const tbody = document.getElementById('stock-tbody');
+  const items = Object.values(stockData);
+  if (!items.length) {
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--txt3)">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(it=>{
+    const qty=it.qty, min=it.minimum||10, isInf=qty===999999;
+    let qc='qty-inf',bc='b-inf',bt='∞ ไม่จำกัด';
+    if(!isInf){
+      if(qty<=0){qc='qty-zero';bc='b-zero';bt='หมดสต๊อก';}
+      else if(qty<=min){qc='qty-low';bc='b-low';bt='ต่ำกว่าขั้นต่ำ';}
+      else{qc='qty-ok';bc='b-ok';bt='ปกติ';}
+    }
+    const cost = it.unit_cost||0;
+    return `<tr>
+      <td><strong>${it.sku}</strong></td>
+      <td class="${qc}">${isInf?'∞':(qty+' ชิ้น')}</td>
+      <td class="hide-mobile" style="color:var(--txt3)">${isInf?'—':min}</td>
+      <td class="hide-mobile" style="color:var(--txt3)">${cost>0?'฿'+cost.toLocaleString():'—'}</td>
+      <td><span class="badge ${bc}">${bt}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════
+// STATS
+// ════════════════════════════════
+function updateStats() {
+  const items=Object.values(stockData);
+  const tracked=items.filter(i=>i.qty!==999999);
+  document.getElementById('s-total').textContent=items.length;
+  document.getElementById('s-low').textContent=tracked.filter(i=>i.qty>0&&i.qty<=(i.minimum||10)).length;
+  document.getElementById('s-zero').textContent=tracked.filter(i=>i.qty<=0).length;
+}
+function checkLow() {
+  const banner=document.getElementById('low-banner');
+  const list=document.getElementById('low-list');
+  const items=Object.values(stockData).filter(i=>i.qty!==999999&&i.qty<=(i.minimum||10));
+  if(!items.length){banner.classList.remove('show');return;}
+  banner.classList.add('show');
+  list.innerHTML=items.map(i=>`<li><strong>${i.sku}</strong> — เหลือ ${i.qty<=0?'<span style="color:var(--red)">หมดแล้ว</span>':(i.qty+' ชิ้น')} (ขั้นต่ำ ${i.minimum||10})</li>`).join('');
+}
+
+// ════════════════════════════════
+// ADD / RETURN STOCK
+// ════════════════════════════════
+function onTypeChange() {
+  const t=document.getElementById('add-type').value;
+  const isReturn=t==='คืนสต๊อก';
+  document.getElementById('reason-box').style.display=isReturn?'block':'none';
+  document.getElementById('order-search-box').style.display=isReturn?'block':'none';
+}
+function searchByOrder() {
+  const q=document.getElementById('order-search').value.trim().toUpperCase();
+  const el=document.getElementById('order-result');
+  if(!q){el.textContent='กรุณาใส่ตัวเลข/ตัวอักษร';return;}
+  const found=logData.filter(r=>(r.ref||'').toUpperCase().includes(q)&&r.status==='active'&&r.qty_change<0);
+  if(!found.length){el.innerHTML='<span style="color:var(--amber)">ไม่พบ Order นี้ใน Log</span>';return;}
+  el.innerHTML='<span style="color:var(--green)">พบ '+found.length+' รายการ — เลือกสินค้าด้านล่างแล้วกดบันทึก</span>';
+  document.getElementById('add-ref').value=q;
+  const sku=found[0].sku;
+  const sel=document.getElementById('add-sku');
+  for(let o of sel.options){if(o.value===sku){o.selected=true;break;}}
+}
+async function submitAdd() {
+  const type=document.getElementById('add-type').value;
+  const sku=document.getElementById('add-sku').value;
+  const qty=parseInt(document.getElementById('add-qty').value)||0;
+  const ref=document.getElementById('add-ref').value.trim();
+  const reason=type==='คืนสต๊อก'?document.getElementById('cancel-reason').value:'';
+  const el=document.getElementById('add-alert');
+  if(!sku){showAlert(el,'กรุณาเลือกสินค้า','a-err');return;}
+  if(qty<1){showAlert(el,'กรุณาระบุจำนวน','a-err');return;}
+  const res=await apiPost({action:'addStock',operator:currentUser,sku,qty,ref,type,reason});
+  if(res.success){
+    showAlert(el,`✓ ${type} — ${sku} จำนวน ${qty} ชิ้น${reason?' ('+reason+')':''}  บันทึกแล้ว`,'a-ok');
+    document.getElementById('add-qty').value='1';
+    document.getElementById('add-ref').value='';
+    document.getElementById('order-search').value='';
+    document.getElementById('order-result').innerHTML='';
+    await loadStock();
+  } else {
+    showAlert(el,'เกิดข้อผิดพลาด: '+(res.error||''),'a-err');
+  }
+}
+
+// ════════════════════════════════
+// RENDER LOG
+// ════════════════════════════════
+function renderLog(data) {
+  const tbody=document.getElementById('log-tbody');
+  let todayCount=0;
+  const today=new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  if(!data.length){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--txt3)">ยังไม่มีประวัติ</td></tr>';
+    document.getElementById('s-today').textContent='0';
+    return;
+  }
+  tbody.innerHTML=data.map(r=>{
+    const cancelled=r.status==='cancelled';
+    const isDeduct=(r.action||'').startsWith('ตัดสต๊อก');
+    const isAdd=(r.action||'').startsWith('เติม')||(r.action||'').startsWith('คืน');
+    const isCancel=(r.action||'').startsWith('ยกเลิก');
+    if(!cancelled&&r.date===today) todayCount++;
+    const qSign=r.qty_change>0?'+':'';
+    const qColor=r.qty_change>0?'color:var(--green)':'color:var(--red)';
+    const ac=isDeduct?'l-deduct':isAdd?'l-add':'l-cancel';
+    const canCancel=!cancelled&&!isCancel&&r.log_id;
+    return `<tr class="${cancelled?'cancelled':''}">
+      <td style="white-space:nowrap;font-size:12px">${r.timestamp||'—'}</td>
+      <td>${r.operator||'—'}</td>
+      <td class="${ac}" style="white-space:nowrap">${r.action||'—'}</td>
+      <td style="font-size:12px">${r.sku||'—'}</td>
+      <td style="${qColor};font-weight:600">${qSign}${r.qty_change}</td>
+      <td class="hide-mobile" style="font-size:11px;color:var(--txt3)">${r.ref||'—'}</td>
+      <td class="hide-mobile" style="font-size:11px;color:var(--txt3)">${r.reason||'—'}</td>
+      <td><span class="badge ${cancelled?'b-zero':'b-ok'}" style="font-size:10px">${cancelled?'ยกเลิก':'ใช้งาน'}</span></td>
+      <td>${canCancel?`<button class="btn btn-ghost btn-sm" onclick="openCancel('${r.log_id}','${(r.sku||'').replace(/'/g,"\\'")}',${r.qty_change})">ยกเลิก</button>`:''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('s-today').textContent=todayCount;
+}
+function filterLog(){
+  const date=document.getElementById('log-date').value;
+  const action=document.getElementById('log-action').value;
+  const order=document.getElementById('log-order').value.trim().toUpperCase();
+  let d=logData;
+  if(date){const[y,m,dd]=date.split('-');const ds=`${dd}/${m}/${y}`;d=d.filter(r=>r.date===ds);}
+  if(action)d=d.filter(r=>(r.action||'').includes(action));
+  if(order)d=d.filter(r=>(r.ref||'').toUpperCase().includes(order)||(r.sku||'').includes(order));
+  renderLog(d);
+}
+function resetLog(){
+  document.getElementById('log-date').value='';
+  document.getElementById('log-action').value='';
+  document.getElementById('log-order').value='';
+  renderLog(logData);
+}
+
+// ════════════════════════════════
+// CANCEL MODAL
+// ════════════════════════════════
+function openCancel(logId,sku,qty){
+  pendingCancelId=logId;
+  document.getElementById('modal-info').innerHTML=
+    `<strong>${sku}</strong> — จำนวน ${qty} ชิ้น<br>สต๊อกจะถูกเพิ่มกลับ ${Math.abs(qty)} ชิ้น`;
+  document.getElementById('cancel-modal').classList.add('show');
+}
+function closeModal(){document.getElementById('cancel-modal').classList.remove('show');pendingCancelId=null;}
+async function confirmCancel(){
+  if(!pendingCancelId)return;
+  const reason=document.getElementById('modal-reason').value;
+  const res=await apiPost({action:'cancelLog',logId:pendingCancelId,operator:currentUser,reason});
+  closeModal();
+  if(res.success){await loadAll();await loadLog();}
+  else alert('ยกเลิกไม่สำเร็จ: '+(res.error||''));
+}
+
+// ════════════════════════════════
+// SETTINGS
+// ════════════════════════════════
+function renderSettings(){
+  const container=document.getElementById('settings-list');
+  const items=Object.values(stockData).filter(i=>i.qty!==999999||true);
+  if(!items.length){container.innerHTML='<p style="color:var(--txt3);font-size:13px">ไม่มีข้อมูล</p>';return;}
+  container.innerHTML=items.map(it=>`
+    <div style="display:grid;grid-template-columns:1fr 90px 90px 80px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px;color:var(--txt)">${it.sku}</span>
+      <input class="fi" type="number" min="0" value="${it.minimum||10}"
+        id="min-${btoa(it.sku).replace(/=/g,'')}" style="text-align:center;padding:7px 6px;font-size:13px" />
+      <input class="fi" type="number" min="0" value="${it.unit_cost||0}"
+        id="cost-${btoa(it.sku).replace(/=/g,'')}" style="text-align:center;padding:7px 6px;font-size:13px" />
+      <button class="btn btn-ghost btn-sm" onclick="saveSetting('${it.sku.replace(/'/g,"\\'")}')">บันทึก</button>
+    </div>`).join('');
+  // handle all stock items, including unlimited
+  Object.values(stockData).filter(i=>i.qty===999999).forEach(it=>{
+    if(!items.find(x=>x.sku===it.sku)){
+      const div=document.createElement('div');
+      div.style.cssText='display:grid;grid-template-columns:1fr 90px 90px 80px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)';
+      div.innerHTML=`
+        <span style="font-size:13px;color:var(--txt)">${it.sku}</span>
+        <input class="fi" type="number" min="0" value="${it.minimum||10}"
+          id="min-${btoa(it.sku).replace(/=/g,'')}" style="text-align:center;padding:7px 6px;font-size:13px" />
+        <input class="fi" type="number" min="0" value="${it.unit_cost||0}"
+          id="cost-${btoa(it.sku).replace(/=/g,'')}" style="text-align:center;padding:7px 6px;font-size:13px" />
+        <button class="btn btn-ghost btn-sm" onclick="saveSetting('${it.sku.replace(/'/g,"\\'")}')">บันทึก</button>`;
+      container.appendChild(div);
+    }
+  });
+}
+async function saveSetting(sku){
+  const key=btoa(sku).replace(/=/g,'');
+  const min=parseInt(document.getElementById('min-'+key)?.value)||0;
+  const cost=parseFloat(document.getElementById('cost-'+key)?.value)||0;
+  const el=document.getElementById('set-alert');
+  const res=await apiPost({action:'setMinimum',sku,minimum:min,unit_cost:cost});
+  if(res.success){
+    showAlert(el,`✓ บันทึก "${sku}" — ขั้นต่ำ ${min} ชิ้น, ต้นทุน ฿${cost}`,'a-ok');
+    await loadStock();
+  } else showAlert(el,'เกิดข้อผิดพลาด','a-err');
+}
+
+// ════════════════════════════════
+// HELPERS
+// ════════════════════════════════
+function showAlert(el,msg,cls){
+  el.textContent=msg; el.className='alert show '+cls;
+  setTimeout(()=>el.classList.remove('show'),5000);
+}
+</script>
+</body>
+</html>
